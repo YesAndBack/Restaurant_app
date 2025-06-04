@@ -15,6 +15,7 @@ interface Restaurant {
   rating: number;
   averagePrice?: number;
   average_price?: number;
+  price_range: string;
 }
 
 interface RestaurantListProps {
@@ -69,18 +70,20 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
 
   // Helper to get the price (handle both formats)
   const getAveragePrice = (restaurant: Restaurant): number | undefined => {
-    return restaurant.averagePrice || restaurant.average_price;
+    // return restaurant.averagePrice || restaurant.average_price;
+    console.log(restaurant.price_range)
+    return restaurant.price_range;
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {restaurants.map((restaurant) => (
         <div key={restaurant.id} className="relative">
-          {selectedDate && restaurantAvailability[restaurant.id] === false && (
-            <Badge className="absolute top-2 right-2 z-10 bg-red-500">Fully Booked</Badge>
-          )}
+          {/* {selectedDate && restaurantAvailability[restaurant.id] === false && (
+            <Badge className="absolute top-2 left-2 z-10 bg-red-500">Fully Booked</Badge>
+          )} */}
           {selectedDate && restaurantAvailability[restaurant.id] === true && (
-            <Badge className="absolute top-2 right-2 z-10 bg-green-500">Available</Badge>
+            <Badge className="absolute top-2 left-2 z-10 bg-green-500">Available</Badge>
           )}
           <RestaurantCard
             id={restaurant.id}
@@ -91,6 +94,7 @@ const RestaurantList: React.FC<RestaurantListProps> = ({
             capacity={restaurant.capacity}
             rating={restaurant.rating}
             averagePrice={getAveragePrice(restaurant)}
+            // averagePrice={restaurant.price_range}
           />
         </div>
       ))}

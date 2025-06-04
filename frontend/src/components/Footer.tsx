@@ -9,7 +9,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
             <Link to="/" className="text-2xl font-bold tracking-tight mb-4 inline-block">
-              TableElite
+              Toila.kz
             </Link>
             <p className="text-foreground/70 mb-4 max-w-sm">
               Premium restaurant booking for your special events and celebrations.
@@ -72,19 +72,19 @@ const Footer = () => {
             <h4 className="text-base font-semibold mb-4">Contact</h4>
             <ul className="space-y-2">
               <li className="text-foreground/70">
-                1234 Elegant Avenue, Suite 500
+                Astana city, mangilik el street, 10/1
               </li>
               <li className="text-foreground/70">
-                New York, NY 10001
+                Almaty city, Al-Farabi street, 20/1
               </li>
               <li>
                 <a href="mailto:contact@tableelite.com" className="text-foreground/70 hover:text-foreground transition-colors">
-                  contact@tableelite.com
+                  contact@toila.com
                 </a>
               </li>
               <li>
                 <a href="tel:+12123456789" className="text-foreground/70 hover:text-foreground transition-colors">
-                  +1 (212) 345-6789
+                  87478014087
                 </a>
               </li>
             </ul>
@@ -93,7 +93,7 @@ const Footer = () => {
         
         <div className="border-t mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
           <p className="text-foreground/60 text-sm mb-4 md:mb-0">
-            © {new Date().getFullYear()} TableElite. All rights reserved.
+            © {new Date().getFullYear()} Toila.kz. All rights reserved.
           </p>
           <div className="flex space-x-6">
             <a href="#" className="text-foreground/60 hover:text-foreground transition-colors">

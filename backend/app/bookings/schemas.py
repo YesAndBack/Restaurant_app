@@ -33,3 +33,11 @@ class BookingResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+
+class BookingListOut(BaseModel):
+    id: int
+    booking_date: date
+
+

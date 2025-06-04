@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -73,6 +72,7 @@ import {
   ChevronDown, 
   Edit, 
   MoreHorizontal, 
+  Search, 
   Trash, 
   X 
 } from 'lucide-react';
@@ -114,8 +114,15 @@ const RestaurantManagement = () => {
   const [images, setImages] = useState<string[]>([]);
   const [selectedBookingDates, setSelectedBookingDates] = useState<Date[]>([]);
   const [reviewToReply, setReviewToReply] = useState<number | null>(null);
-  const [bookingFilters, setBookingFilters] = useState<BookingFilters>({});
+  const [bookingFilters, setBookingFilters] = useState<BookingFilters>({
+    status: undefined,
+    from_date: undefined,
+    to_date: undefined,
+    search: "",
+  });
   const [imageDeleteConfirmationId, setImageDeleteConfirmationId] = useState<string | null>(null);
+  const [bookingDetailsOpen, setBookingDetailsOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null);
 
   // Form setup for restaurant details
   const form = useForm<z.infer<typeof restaurantFormSchema>>({
@@ -264,9 +271,18 @@ const RestaurantManagement = () => {
         setBookings(bookings.map(booking => 
           booking.id === bookingId ? { ...booking, status: 'confirmed' } : booking
         ));
+        toast({
+          title: 'Success',
+          description: 'Booking has been confirmed',
+        });
       }
     } catch (error) {
       console.error('Error confirming booking:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to confirm booking',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -278,9 +294,18 @@ const RestaurantManagement = () => {
         setBookings(bookings.map(booking => 
           booking.id === bookingId ? { ...booking, status: 'rejected' } : booking
         ));
+        toast({
+          title: 'Success',
+          description: 'Booking has been rejected',
+        });
       }
     } catch (error) {
       console.error('Error rejecting booking:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to reject booking',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -293,8 +318,17 @@ const RestaurantManagement = () => {
       setReviews(await reviewService.getReviewsForRestaurant(numericRestaurantId));
       setReviewToReply(null);
       replyForm.reset();
+      toast({
+        title: 'Success',
+        description: 'Reply to review has been posted',
+      });
     } catch (error) {
       console.error('Error replying to review:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to post reply',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -308,18 +342,43 @@ const RestaurantManagement = () => {
         bookingFilters
       );
       setBookings(filteredBookings);
+      
+      toast({
+        title: 'Filters Applied',
+        description: `Showing ${filteredBookings.length} bookings matching your criteria.`,
+      });
     } catch (error) {
       console.error('Error filtering bookings:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to apply filters',
+        variant: 'destructive',
+      });
     }
   };
 
   // Reset booking filters
   const resetBookingFilters = async () => {
-    setBookingFilters({});
+    setBookingFilters({
+      status: undefined,
+      from_date: undefined,
+      to_date: undefined,
+      search: "",
+    });
     if (numericRestaurantId) {
       const allBookings = await bookingService.getBookingsForRestaurant(numericRestaurantId);
       setBookings(allBookings);
+      toast({
+        title: 'Filters Reset',
+        description: 'Showing all bookings',
+      });
     }
+  };
+
+  // Open booking details
+  const handleViewBookingDetails = (booking: BookingData) => {
+    setSelectedBooking(booking);
+    setBookingDetailsOpen(true);
   };
 
   return (
@@ -646,19 +705,45 @@ const RestaurantManagement = () => {
                   <div className="space-y-6">
                     {/* Booking Filters */}
                     <div className="flex flex-wrap gap-4 items-end">
+                      <div className="space-y-2 w-full md:w-auto">
+                        <p className="text-sm font-medium">Search</p>
+                        <div className="flex items-center border rounded-md px-3 py-1 gap-2 bg-background">
+                          <Search className="h-4 w-4 text-muted-foreground" />
+                          <input 
+                            type="text"
+                            placeholder="Search guest name"
+                            className="border-0 bg-transparent focus:outline-none flex-1 text-sm"
+                            value={bookingFilters.search || ""}
+                            onChange={(e) => setBookingFilters({...bookingFilters, search: e.target.value})}
+                          />
+                          {bookingFilters.search && (
+                            <button 
+                              onClick={() => setBookingFilters({...bookingFilters, search: ""})}
+                              className="text-muted-foreground hover:text-foreground"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
                       <div className="space-y-2">
                         <p className="text-sm font-medium">Status</p>
                         <Select
                           value={bookingFilters.status}
-                          onValueChange={(value: "pending" | "confirmed" | "rejected" | undefined) => 
-                            setBookingFilters({...bookingFilters, status: value})
-                          }
+                          onValueChange={(value: string | undefined) => {
+                            if (value === "all") {
+                              setBookingFilters({...bookingFilters, status: undefined});
+                            } else {
+                              setBookingFilters({...bookingFilters, status: value as "pending" | "confirmed" | "rejected" | undefined});
+                            }
+                          }}
                         >
                           <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="All statuses" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value={undefined}>All statuses</SelectItem>
+                            <SelectItem value="all">All statuses</SelectItem>
                             <SelectItem value="pending">Pending</SelectItem>
                             <SelectItem value="confirmed">Confirmed</SelectItem>
                             <SelectItem value="rejected">Rejected</SelectItem>
@@ -745,72 +830,64 @@ const RestaurantManagement = () => {
                     {/* Bookings Table */}
                     {bookings.length > 0 ? (
                       <Table>
-                        <TableCaption>List of all bookings for your restaurant</TableCaption>
+                        <TableCaption>List of bookings</TableCaption>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Guest Name</TableHead>
+                            <TableHead>Guest</TableHead>
                             <TableHead>Date</TableHead>
-                            <TableHead>Time</TableHead>
                             <TableHead>Guests</TableHead>
+                            <TableHead>Event Type</TableHead>
+                            <TableHead>Contact</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead>Special Requests</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead>Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {bookings.map((booking) => (
-                            <TableRow key={booking.id}>
-                              <TableCell className="font-medium">{booking.contact_name}</TableCell>
-                              <TableCell>{booking.booking_date}</TableCell>
-                              <TableCell>{booking.booking_time}</TableCell>
-                              <TableCell>{booking.guest_count}</TableCell>
+                            <TableRow 
+                              key={booking.id}
+                              className="cursor-pointer hover:bg-muted/50"
+                              onClick={() => handleViewBookingDetails(booking)}
+                            >
+                              <TableCell className="font-medium">{booking.booking_username}</TableCell>
+                              <TableCell>{format(new Date(booking.booking_date), 'PPP')}</TableCell>
+                              <TableCell>{booking.number_of_guests}</TableCell>
+                              <TableCell className="capitalize">{booking.event_type}</TableCell>
                               <TableCell>
-                                <span className={cn(
-                                  "px-2 py-1 rounded-full text-xs font-medium",
-                                  booking.status === "confirmed" && "bg-green-100 text-green-800",
-                                  booking.status === "pending" && "bg-yellow-100 text-yellow-800",
-                                  booking.status === "rejected" && "bg-red-100 text-red-800"
-                                )}>
+                                <div>{booking.email}</div>
+                                <div className="text-muted-foreground">{booking.phone_number}</div>
+                              </TableCell>
+                              <TableCell>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                  booking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
+                                  'bg-red-100 text-red-800'
+                                }`}>
                                   {booking.status}
                                 </span>
                               </TableCell>
-                              <TableCell className="max-w-xs truncate">
-                                {booking.special_requests || "None"}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                      <span className="sr-only">Open menu</span>
-                                      <MoreHorizontal className="h-4 w-4" />
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                {booking.status === 'pending' && (
+                                  <div className="flex gap-2">
+                                    <Button 
+                                      size="sm" 
+                                      className="bg-green-600 hover:bg-green-700"
+                                      onClick={() => handleConfirmBooking(booking.id)}
+                                    >
+                                      <Check className="mr-1 h-4 w-4" />
+                                      Confirm
                                     </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    {booking.status === "pending" && (
-                                      <>
-                                        <DropdownMenuItem onClick={() => handleConfirmBooking(booking.id)}>
-                                          <Check className="mr-2 h-4 w-4 text-green-600" />
-                                          Confirm Booking
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleRejectBooking(booking.id)}>
-                                          <X className="mr-2 h-4 w-4 text-red-600" />
-                                          Reject Booking
-                                        </DropdownMenuItem>
-                                      </>
-                                    )}
-                                    <DropdownMenuItem onClick={() => {
-                                      // View details (could be expanded to show dialog with all booking details)
-                                      toast({
-                                        title: "Contact Details",
-                                        description: `Email: ${booking.contact_email}\nPhone: ${booking.contact_phone}`,
-                                      });
-                                    }}>
-                                      View Contact Details
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline"
+                                      className="border-red-600 text-red-600 hover:bg-red-50"
+                                      onClick={() => handleRejectBooking(booking.id)}
+                                    >
+                                      <X className="mr-1 h-4 w-4" />
+                                      Reject
+                                    </Button>
+                                  </div>
+                                )}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -824,6 +901,114 @@ const RestaurantManagement = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Booking Details Dialog */}
+              <Dialog open={bookingDetailsOpen} onOpenChange={setBookingDetailsOpen}>
+                <DialogContent className="sm:max-w-[550px]">
+                  {selectedBooking && (
+                    <>
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <span>Booking #{selectedBooking.id}</span>
+                          <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                            selectedBooking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                            selectedBooking.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {selectedBooking.status.charAt(0).toUpperCase() + selectedBooking.status.slice(1)}
+                          </span>
+                        </DialogTitle>
+                        <DialogDescription>
+                          Booking details for {selectedBooking.booking_username}
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <div className="grid gap-4 py-2">
+                        <div className="grid grid-cols-1 gap-4">
+                          {/* Customer Information */}
+                          <div className="bg-muted/30 p-4 rounded-lg">
+                            <h3 className="text-sm font-medium mb-2">Customer Information</h3>
+                            <div className="space-y-2">
+                              <div className="grid grid-cols-3 gap-1">
+                                <span className="text-sm text-muted-foreground">Name:</span>
+                                <span className="text-sm font-medium col-span-2">{selectedBooking.booking_username}</span>
+                              </div>
+                              <div className="grid grid-cols-3 gap-1">
+                                <span className="text-sm text-muted-foreground">Email:</span>
+                                <span className="text-sm col-span-2">{selectedBooking.email}</span>
+                              </div>
+                              <div className="grid grid-cols-3 gap-1">
+                                <span className="text-sm text-muted-foreground">Phone:</span>
+                                <span className="text-sm col-span-2">{selectedBooking.phone_number}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Booking Details */}
+                          <div className="bg-muted/30 p-4 rounded-lg">
+                            <h3 className="text-sm font-medium mb-2">Booking Details</h3>
+                            <div className="space-y-2">
+                              <div className="grid grid-cols-3 gap-1">
+                                <span className="text-sm text-muted-foreground">Date:</span>
+                                <span className="text-sm font-medium col-span-2">
+                                  {format(new Date(selectedBooking.booking_date), 'PPP')}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-3 gap-1">
+                                <span className="text-sm text-muted-foreground">Event Type:</span>
+                                <span className="text-sm capitalize col-span-2">{selectedBooking.event_type}</span>
+                              </div>
+                              <div className="grid grid-cols-3 gap-1">
+                                <span className="text-sm text-muted-foreground">Number of Guests:</span>
+                                <span className="text-sm col-span-2">{selectedBooking.number_of_guests}</span>
+                              </div>
+                              {selectedBooking.additional_information && (
+                                <div className="grid grid-cols-3 gap-1">
+                                  <span className="text-sm text-muted-foreground">Additional Info:</span>
+                                  <span className="text-sm whitespace-pre-wrap col-span-2">
+                                    {selectedBooking.additional_information}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <DialogFooter>
+                        {selectedBooking.status === 'pending' && (
+                          <div className="flex gap-2 mr-auto">
+                            <Button 
+                              onClick={() => {
+                                handleConfirmBooking(selectedBooking.id);
+                                setBookingDetailsOpen(false);
+                              }}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <Check className="mr-1 h-4 w-4" />
+                              Confirm
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              onClick={() => {
+                                handleRejectBooking(selectedBooking.id);
+                                setBookingDetailsOpen(false);
+                              }}
+                              className="border-red-600 text-red-600 hover:bg-red-50"
+                            >
+                              <X className="mr-1 h-4 w-4" />
+                              Reject
+                            </Button>
+                          </div>
+                        )}
+                        <Button variant="secondary" onClick={() => setBookingDetailsOpen(false)}>
+                          Close
+                        </Button>
+                      </DialogFooter>
+                    </>
+                  )}
+                </DialogContent>
+              </Dialog>
             </TabsContent>
 
             {/* Reviews Tab */}
@@ -869,8 +1054,12 @@ const RestaurantManagement = () => {
                           
                           <p className="text-sm">{review.comment}</p>
                           
-                          {/* If there's a reply to this review, show it here */}
-                          {/* This depends on your review data structure */}
+                          {review.reply && (
+                            <div className="bg-muted/30 p-3 rounded-md ml-4 mt-2">
+                              <p className="text-sm font-medium">Your Response:</p>
+                              <p className="text-sm mt-1">{review.reply}</p>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

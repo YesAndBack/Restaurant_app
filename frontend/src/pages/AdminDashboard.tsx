@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -88,6 +87,7 @@ const AdminDashboard = () => {
   const [showAddRestaurantForm, setShowAddRestaurantForm] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [restaurantToDelete, setRestaurantToDelete] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showContactDialog, setShowContactDialog] = useState(false);
   const [contactDetails, setContactDetails] = useState({
     name: "",
@@ -104,24 +104,18 @@ const AdminDashboard = () => {
         const myRestaurants = await restaurantService.getMyRestaurants();
         if (myRestaurants.length > 0) {
           const formattedRestaurants = myRestaurants.map(restaurant => {
-            // Determine the image URL based on the various formats possible
             let imageUrl = "";
             if (Array.isArray(restaurant.images) && restaurant.images.length > 0) {
-              // Check if images array contains objects with url property
               if (typeof restaurant.images[0] === 'object' && 'url' in restaurant.images[0]) {
                 imageUrl = (restaurant.images[0] as { id: number, url: string }).url;
               } else {
-                // Images array contains string URLs
                 imageUrl = restaurant.images[0] as string;
               }
             } else if (restaurant.image) {
-              // Direct image property
               imageUrl = restaurant.image;
             } else {
-              // Fallback image
               imageUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop";
             }
-
             return {
               id: restaurant.id,
               name: restaurant.name,
@@ -157,12 +151,9 @@ const AdminDashboard = () => {
         setIsLoading(false);
       }
     };
-
     fetchMyRestaurants();
   }, [toast]);
-
   
-
   const form = useForm<z.infer<typeof restaurantFormSchema>>({
     resolver: zodResolver(restaurantFormSchema),
     defaultValues: {
@@ -197,7 +188,6 @@ const AdminDashboard = () => {
         const newRestaurant = await restaurantService.createRestaurant(restaurantData);
         
         if (newRestaurant) {
-          // Add the new restaurant to the state
           const formattedRestaurant: Restaurant = {
             id: newRestaurant.id,
             name: newRestaurant.name,
@@ -205,7 +195,7 @@ const AdminDashboard = () => {
             location: newRestaurant.location,
             category: newRestaurant.category,
             capacity: newRestaurant.capacity,
-            image: values.image, // Use the image URL from the form since we don't upload it in this step
+            image: values.image,
             openingHours: newRestaurant.opening_hours || "",
             contactPhone: newRestaurant.contact_phone,
             contactEmail: newRestaurant.contact_email,
@@ -267,22 +257,42 @@ const AdminDashboard = () => {
 
   const confirmDeleteRestaurant = async () => {
     if (restaurantToDelete) {
+      setIsDeleting(true);
       try {
-        // Call API to delete restaurant (would be implemented in restaurantService)
-        // await restaurantService.deleteRestaurant(restaurantToDelete);
+        const token = localStorage.getItem("booking_access_token");
         
+        if (!token) {
+          throw new Error("Authentication required");
+        }
+
+        const response = await fetch(`http://localhost:8001/rest/restaurants/${restaurantToDelete}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || 'Failed to delete restaurant');
+        }
+
         setRestaurants(restaurants.filter((r) => r.id !== restaurantToDelete));
+        
         toast({
           title: "Restaurant deleted!",
           description: "The restaurant has been successfully deleted.",
         });
       } catch (error) {
+        console.error("Delete error:", error);
         toast({
           title: "Failed to delete restaurant",
-          description: "There was a problem deleting the restaurant.",
+          description: error instanceof Error ? error.message : "There was a problem deleting the restaurant.",
           variant: "destructive",
         });
       } finally {
+        setIsDeleting(false);
         setShowDeleteConfirmation(false);
         setRestaurantToDelete(null);
       }
@@ -317,14 +327,12 @@ const AdminDashboard = () => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         </div>
-
         <div className="bg-background rounded-lg shadow-sm overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full justify-start border-b bg-background px-4 pt-2">
               <TabsTrigger value="restaurants" className="data-[state=active]:bg-background">Restaurants</TabsTrigger>
               <TabsTrigger value="reservations" className="data-[state=active]:bg-background">Reservations</TabsTrigger>
             </TabsList>
-
             <TabsContent value="restaurants" className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-semibold">Restaurant Management</h2>
@@ -415,9 +423,6 @@ const AdminDashboard = () => {
             <TabsContent value="reservations" className="p-6">
               <div className="flex">
               <h2 className="text-2xl font-semibold mb-4">Reservations Management</h2>
-              {/* <Button variant="outline" className="ml-4" onClick={() => restaurantService.getMyBooking()}>
-                Refresh
-              </Button> */}
               </div>
               
               <p>To manage bookings, please go to the specific restaurant management page.</p>
@@ -619,15 +624,28 @@ const AdminDashboard = () => {
                 <label htmlFor="name" className="text-right">
                   Name
                 </label>
-                <Input id="name" value={restaurants.find((r) => r.id === restaurantToDelete)?.name || ""} className="col-span-3" disabled />
+                <Input 
+                  id="name" 
+                  value={restaurants.find((r) => r.id === restaurantToDelete)?.name || ""} 
+                  className="col-span-3" 
+                  disabled 
+                />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="secondary" onClick={() => setShowDeleteConfirmation(false)}>
+              <Button 
+                variant="secondary" 
+                onClick={() => setShowDeleteConfirmation(false)}
+                disabled={isDeleting}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={confirmDeleteRestaurant}>
-                Delete
+              <Button 
+                variant="destructive" 
+                onClick={confirmDeleteRestaurant}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
               </Button>
             </DialogFooter>
           </DialogContent>

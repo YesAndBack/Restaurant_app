@@ -11,7 +11,7 @@ class Restaurant(Base):
     description = Column(Text)
     location = Column(String)
     address = Column(String)
-    category = Column(String)
+    category = Column(Text)
     capacity = Column(Integer)
     rating = Column(Float)
     price_range = Column(String)

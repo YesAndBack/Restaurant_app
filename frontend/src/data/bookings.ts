@@ -1,6 +1,6 @@
 
 import { Booking, BookingDay } from "@/types/booking";
-import { addDays, format } from "date-fns";
+import { addDays, format, eachDayOfInterval } from "date-fns";
 
 // Generate some sample bookings for the next 30 days
 const today = new Date();
@@ -111,19 +111,35 @@ export const getBookingDayInfo = (restaurantId: string, date: Date, restaurantCa
 };
 
 // Helper function to get booking info for a date range
-export const getBookingsForDateRange = (
-  restaurantId: string,
-  startDate: Date,
-  endDate: Date,
-  restaurantCapacity: number
-): BookingDay[] => {
-  const days: BookingDay[] = [];
-  let currentDate = new Date(startDate);
+export const getBookingsForDateRange = (restaurantId, startDate, endDate, capacity) => {
+  // Normally we would fetch this data from an API
+  // For now, we'll use the restaurant data that's already loaded
   
-  while (currentDate <= endDate) {
-    days.push(getBookingDayInfo(restaurantId, currentDate, restaurantCapacity));
-    currentDate = addDays(currentDate, 1);
+  // Find the restaurant in our data (this will be replaced by your actual data fetching logic)
+  let bookedDates = [];
+  
+  // Try to get the restaurant from localStorage (this is a workaround)
+  try {
+    const restaurantData = JSON.parse(localStorage.getItem('currentRestaurant'));
+    if (restaurantData && restaurantData.bookings) {
+      bookedDates = restaurantData.bookings.map(booking => booking.booking_date);
+    }
+  } catch (error) {
+    console.error("Error accessing restaurant data:", error);
   }
   
-  return days;
+  // Generate array of all dates in the range
+  const dateRange = eachDayOfInterval({ start: startDate, end: endDate });
+  
+  // Map each date to its booking status
+  return dateRange.map(date => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const isBooked = bookedDates.includes(dateStr);
+    
+    return {
+      date: dateStr,
+      isFullyBooked: isBooked,
+      availableCapacity: isBooked ? 0 : capacity, // If booked, no capacity, otherwise full capacity
+    };
+  });
 };

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
@@ -241,3 +241,33 @@ class BookingDAO:
             )
         )
         return [row.restaurant_id for row in booked]
+    
+    @staticmethod
+    async def get_booked_dates(
+        db: AsyncSession,
+        restaurant_id: int,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
+    ) -> List[date]:
+        """Get all booked dates for a restaurant where bookings are pending or confirmed"""
+        restaurant = await db.get(Restaurant, restaurant_id)
+        if not restaurant:
+            raise HTTPException(status_code=404, detail="Restaurant not found")
+
+        query = select(Bookings.booking_date).filter(
+            Bookings.restaurant_id == restaurant_id,
+            Bookings.status.in_(["pending", "confirmed"])
+        )
+
+        # Apply date range filtering if provided
+        if start_date and end_date:
+            query = query.filter(Bookings.booking_date.between(start_date, end_date))
+        elif start_date:
+            query = query.filter(Bookings.booking_date >= start_date)
+        elif end_date:
+            query = query.filter(Bookings.booking_date <= end_date)
+
+        result = await db.execute(query)
+        booked_dates = {row.booking_date for row in result}
+
+        return sorted(list(booked_dates))

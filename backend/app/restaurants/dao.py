@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
 from app.reviews.schemas import ReviewResponse
+from app.bookings.schemas import BookingListOut
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +114,8 @@ class RestaurantDAO:
         try:
             query = select(Restaurant).options(
                 selectinload(Restaurant.images),
-                selectinload(Restaurant.reviews)
+                selectinload(Restaurant.reviews),
+                selectinload(Restaurant.bookings)
             )
             result = await db.execute(query)
             restaurants = result.scalars().all()
@@ -146,6 +148,13 @@ class RestaurantDAO:
                             restaurant_id=review.restaurant_id
                         )
                         for review in restaurant.reviews
+                    ],
+                    bookings=[
+                        BookingListOut(
+                            id=booking.id,
+                            booking_date=booking.booking_date
+                        )
+                        for booking in restaurant.bookings
                     ]
                 )
                 for restaurant in restaurants
@@ -169,7 +178,7 @@ class RestaurantDAO:
         load_reviews: bool = False
     ) -> Optional[RestaurantResponse]:
         """Get a single restaurant by ID with optional eager loading of reviews."""
-        options = [selectinload(Restaurant.images)]
+        options = [selectinload(Restaurant.images), selectinload(Restaurant.bookings)]
         if load_reviews:
             options.append(selectinload(Restaurant.reviews))
 
@@ -198,6 +207,13 @@ class RestaurantDAO:
             images=[
                 RestaurantImageSchema(id=img.id, url=img.url)
                 for img in restaurant.images
+            ],
+            bookings=[
+                BookingListOut(
+                    id=booking.id,
+                    booking_date=booking.booking_date
+                )
+                for booking in restaurant.bookings
             ],
             reviews=[
                 ReviewResponse(

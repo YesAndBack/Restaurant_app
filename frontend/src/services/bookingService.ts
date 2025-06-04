@@ -35,6 +35,7 @@ export interface CreateBookingData {
 }
 
 export interface BookingFilters {
+  search: string;
   status?: "pending" | "confirmed" | "rejected";
   from_date?: string;
   to_date?: string;

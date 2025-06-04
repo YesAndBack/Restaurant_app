@@ -101,7 +101,7 @@ const FeaturedRestaurants = () => {
                 category={restaurant.category}
                 capacity={restaurant.capacity}
                 rating={restaurant.rating}
-                averagePrice={restaurant.average_price || restaurant.averagePrice}
+                averagePrice={restaurant.price_range}
               />
             ))}
           </div>

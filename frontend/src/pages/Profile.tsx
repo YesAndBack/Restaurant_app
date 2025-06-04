@@ -27,20 +27,20 @@ const Profile = () => {
   const [rejectionReason, setRejectionReason] = React.useState<string>("");
   
   const [profile, setProfile] = React.useState({
-    nickname: "John Doe",
-    phone: "+1 234 567 890",
-    email: "john@example.com",
+    nickname: "Yessenbek Abyur",
+    phone: "87478014087",
+    email: "yessen@example.com",
     notificationsEnabled: true
   });
 
   const [chats, setChats] = React.useState([
-    { id: 1, restaurant: "La Bella Italia", lastMessage: "Your table is ready!", unread: true },
+    { id: 1, restaurant: "Grand Hall", lastMessage: "Your table is ready!", unread: true },
     { id: 2, restaurant: "Sushi Master", lastMessage: "Thank you for your reservation", unread: false },
   ]);
 
   const [bookings, setBookings] = React.useState([
-    { id: 1, date: "2025-04-15", time: "19:00", restaurant: "La Bella Italia" },
-    { id: 2, date: "2025-04-20", time: "20:30", restaurant: "Sushi Master" },
+    { id: 1, date: "2025-04-15", time: "19:00", restaurant: "Grand Hall" },
+    { id: 2, date: "2025-04-20", time: "20:30", restaurant: "Tomiris" },
   ]);
 
   const form = useForm<z.infer<typeof formSchema>>({

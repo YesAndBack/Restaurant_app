@@ -68,6 +68,14 @@ import ImageUploader from "@/components/restaurant/ImageUploader";
 import { bookingService, BookingData } from "@/services/bookingService";
 import { reviewService } from "@/services/reviewService";
 import BookingListComponent from "@/components/BookingListComponent";
+import {
+  YMap,
+  YMapDefaultSchemeLayer,
+  YMapDefaultFeaturesLayer,
+  YMapComponentsProvider,
+  YMapDefaultMarker
+} from "ymap3-components";
+import { YMapLocation } from "@yandex/ymaps3-types/imperative/YMap";
 
 const fallbackRestaurants = [
   {
@@ -129,8 +137,9 @@ const formSchema = z.object({
 });
 
 const RestaurantDetail = () => {
+  const location: YMapLocation = { center: [71.432921, 51.128641], zoom: 17 };
   const { id } = useParams();
-  const [restaurant, setRestaurant] = useState<RestaurantData | null>(null);
+  const [restaurant, setRestaurant ]= useState<RestaurantData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const { toast } = useToast();
@@ -323,6 +332,7 @@ const RestaurantDetail = () => {
         booking_username: values.booking_username,
         email: values.email,
         phone_number: values.phone_number,
+        additional_information: values.message 
         // status: "pending" as "pending" | "confirmed" | "rejected"
       };
 
@@ -529,7 +539,7 @@ const RestaurantDetail = () => {
               <h1 className="mb-2">{restaurant?.name}</h1>
               <div className="flex items-center text-foreground/70 mb-4">
                 <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-                <span>{restaurant?.address}</span>
+                <span>{restaurant?.location}</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 <div className="flex items-center text-sm bg-secondary px-3 py-1 rounded-full">
@@ -543,7 +553,7 @@ const RestaurantDetail = () => {
                   </div>
                 )}
                 <div className="flex items-center text-sm bg-secondary px-3 py-1 rounded-full">
-                  <span>{restaurant?.price_range}</span>
+                  <span> avarage {restaurant?.price_range}$/per person</span>
                 </div>
                 {restaurant?.average_price && (
                   <div className="flex items-center text-sm bg-secondary px-3 py-1 rounded-full">
@@ -733,9 +743,19 @@ const RestaurantDetail = () => {
                     <div>
                       <h4 className="text-lg font-semibold mb-3">Location</h4>
                       <div className="aspect-video bg-secondary rounded-lg mb-2">
-                        <div className="w-full h-full flex items-center justify-center text-foreground/50">
+                        {/* <div className="w-full h-full flex items-center justify-center text-foreground/50">
                           Interactive Map
-                        </div>
+                        </div> */}
+                            <YMapComponentsProvider apiKey="7a95812b-7995-4b92-86d8-947df7f52c78">
+                              <YMap location={location}>
+                                <YMapDefaultSchemeLayer />
+                                <YMapDefaultFeaturesLayer />
+                                <YMapDefaultMarker
+                                  coordinates={location.center}
+                                />
+                              </YMap>
+    </YMapComponentsProvider>
+
                       </div>
                       <p className="text-foreground/70">{restaurant?.address}</p>
                     </div>
@@ -750,11 +770,11 @@ const RestaurantDetail = () => {
                           </li>
                           <li className="flex justify-between">
                             <span>Standing Reception</span>
-                            <span className="font-medium">{Math.floor(restaurant?.capacity * 1.5)} guests</span>
+                            <span className="font-medium">{Math.floor(restaurant?.capacity * 0.2)} guests</span>
                           </li>
                           <li className="flex justify-between">
                             <span>Theater Style</span>
-                            <span className="font-medium">{Math.floor(restaurant?.capacity * 1.2)} guests</span>
+                            <span className="font-medium">{Math.floor(restaurant?.capacity * 0.4)} guests</span>
                           </li>
                         </ul>
                       </div>
@@ -907,7 +927,7 @@ const RestaurantDetail = () => {
                         </li>
                         <li className="flex items-center">
                           <MapPin className="h-5 w-5 mr-3 text-foreground/70" />
-                          <span>{restaurant?.address}</span>
+                          <span>{restaurant?.location}</span>
                         </li>
                       </ul>
                     </div>
@@ -1028,12 +1048,11 @@ const RestaurantDetail = () => {
                         <FormItem>
                           <FormLabel>Event Date</FormLabel>
                           <FormControl>
-                            <BookingDatePicker
-                              date={field.value}
-                              onSelect={field.onChange}
-                              bookingInfo={bookingInfo}
-                              minGuests={parseInt(form.getValues("guests") || "0")}
-                            />
+<BookingDatePicker
+  date={field.value}
+  onSelect={field.onChange}
+  bookings={restaurant.bookings} // Pass the bookings array directly from your backend
+/>
                           </FormControl>
                           <FormMessage />
                         </FormItem>

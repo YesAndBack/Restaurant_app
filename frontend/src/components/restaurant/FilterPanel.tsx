@@ -51,12 +51,12 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Any location</SelectItem>
-              <SelectItem value="New York">New York</SelectItem>
-              <SelectItem value="San Francisco">San Francisco</SelectItem>
-              <SelectItem value="Los Angeles">Los Angeles</SelectItem>
-              <SelectItem value="Chicago">Chicago</SelectItem>
-              <SelectItem value="Miami">Miami</SelectItem>
-              <SelectItem value="New Orleans">New Orleans</SelectItem>
+              <SelectItem value="Astana">Astana</SelectItem>
+              <SelectItem value="Almaty">Almaty</SelectItem>
+              <SelectItem value="Shymkent">Shymkent</SelectItem>
+              <SelectItem value="Karagandy">Karagandy</SelectItem>
+              <SelectItem value="Pavlodar">Pavlodar</SelectItem>
+              <SelectItem value="Aktau">Aktau</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -70,12 +70,12 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All categories</SelectItem>
-            <SelectItem value="Fine Dining">Fine Dining</SelectItem>
-            <SelectItem value="Rooftop">Rooftop</SelectItem>
-            <SelectItem value="Luxury">Luxury</SelectItem>
+            <SelectItem value="Fine Dining">Wedding</SelectItem>
+            <SelectItem value="Rooftop">Birthday</SelectItem>
+            <SelectItem value="Luxury">Party</SelectItem>
             <SelectItem value="Modern">Modern</SelectItem>
             <SelectItem value="Classic">Classic</SelectItem>
-            <SelectItem value="Seafood">Seafood</SelectItem>
+            <SelectItem value="Seafood">Celebration</SelectItem>
           </SelectContent>
         </Select>
       </div>

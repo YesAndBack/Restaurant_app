@@ -4,6 +4,8 @@ import Footer from "@/components/Footer";
 import { getBookingDayInfo } from "@/data/bookings";
 import { BookingDay } from "@/types/booking";
 import { api } from "@/services/api";
+import { format } from "date-fns";
+
 
 import PageHeader from "@/components/restaurant/PageHeader";
 import SearchBar from "@/components/restaurant/SearchBar";
@@ -94,8 +96,9 @@ const Restaurants = () => {
         location: restaurant.location,
         category: restaurant.category || "Venue",
         capacity: restaurant.capacity || 50,
-        rating: restaurant.rating || 4.0,
-        average_price: restaurant.average_price || 75,
+        rating: restaurant.rating,
+        price_range: restaurant.price_range || 75,
+        bookings: restaurant.bookings || [],
       };
     }
     
@@ -139,16 +142,35 @@ const Restaurants = () => {
     }
   }, [selectedDate, allRestaurants]);
 
-  const filteredRestaurants = allRestaurants.filter((restaurant) => {
-    const matchesSearch = restaurant.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = category === "all" || restaurant.category === category;
-    const matchesLocation = location === "all" || restaurant.location.includes(location);
-    const matchesCapacity = restaurant.capacity >= capacity[0];
-    
-    const isAvailableOnDate = !selectedDate || !hideBooked || restaurantAvailability[restaurant.id];
-    
-    return matchesSearch && matchesCategory && matchesLocation && matchesCapacity && isAvailableOnDate;
-  });
+const filteredRestaurants = allRestaurants.filter((restaurant) => {
+  const matchesSearch = restaurant.name.toLowerCase().includes(searchQuery.toLowerCase());
+  const matchesCategory = category === "all" || restaurant.category === category;
+  const matchesLocation = location === "all" || restaurant.location.includes(location);
+  const matchesCapacity = restaurant.capacity >= capacity[0];
+  
+  let formattedDate = "";
+  if (selectedDate instanceof Date && !isNaN(selectedDate.getTime())) {
+    formattedDate = format(selectedDate, 'yyyy-MM-dd');
+  }
+  
+  // Check if restaurant does NOT have a booking on the selected date
+  let hasNoBookingOnDate = true;
+  if (selectedDate && restaurant.bookings && Array.isArray(restaurant.bookings)) {
+    const hasBooking = restaurant.bookings.some(booking => booking.booking_date === formattedDate);
+    hasNoBookingOnDate = !hasBooking;
+  }
+  
+  // Check if restaurant is available (not fully booked) on the selected date
+  const isAvailableOnDate = !selectedDate || 
+    (!hideBooked || (restaurantAvailability[restaurant.id] !== false));
+  
+  return matchesSearch && 
+         matchesCategory && 
+         matchesLocation && 
+         matchesCapacity && 
+         hasNoBookingOnDate && 
+         isAvailableOnDate;
+});
 
   const getBookingInfoForRestaurants = () => {
     const bookingInfo: BookingDay[] = [];

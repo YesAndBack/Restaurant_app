@@ -10,6 +10,12 @@ export interface RestaurantImageData {
   url: string;
 }
 
+export interface BookingOutData {
+  id: number;
+  booking_date: string;
+}
+
+
 export interface RestaurantData {
   id: number;
   name: string;
@@ -28,6 +34,7 @@ export interface RestaurantData {
   images: RestaurantImageData[];
   reviews: any[]; // We'll update this when you provide the review backend
   average_price: number;
+  bookings: BookingOutData[];
 }
 
 export interface RestaurantCreateData {

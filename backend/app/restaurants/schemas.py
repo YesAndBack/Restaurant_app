@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 
 from app.reviews.schemas import ReviewResponse
-from app.bookings.schemas import BookingResponse
+from app.bookings.schemas import BookingListOut
 
 class RestaurantImageSchema(BaseModel):
     id: int
@@ -38,11 +38,13 @@ class RestaurantCreate(RestaurantBase):
     image_urls: Optional[List[str]] = None
 
 
+
 class RestaurantResponse(RestaurantBase):
     id: int
     owner_id: int
     images: List[RestaurantImageSchema]
     reviews: Optional[List[ReviewResponse]]
+    bookings: Optional[List[BookingListOut]] = []
     # bookings: List[BookingResponse] 
 
     class Config:
@@ -74,7 +76,10 @@ class RestaurantCreateIn(BaseModel):
     contact_phone: str
     contact_email: str
     average_price: int
-    image_urls: str = ""
+    image_urls: Optional[str] = ""  # строка с запятыми
     opening_hours: str = ""
+    features:List[str]
+    cuisines:List[str]
     user_id: int = None
+
 

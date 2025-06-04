@@ -1,24 +1,27 @@
-
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-
 import Index from "./pages/Index";
+
 import Login from "./pages/Login";
 import Register from "./pages/SignUp";
 import Restaurants from "./pages/Restaurants";
 import RestaurantDetail from "./pages/RestaurantDetail";
+
 import RestaurantManagement from "./pages/RestaurantManagement";
 import RestaurantViewEdit from "./pages/RestaurantViewEdit";
 import RestaurantAdd from "./pages/RestaurantAdd";
 import About from "./pages/About";
+
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
+
 import AdminDashboard from "./pages/AdminDashboard";
 import SuccessPage from "./pages/SuccesPage";
 import UserBookingStatus from "./pages/UserBookingStatus";
@@ -34,15 +37,19 @@ const App = () => (
           <Toaster />
           <Sonner />
           <Routes>
+
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/restaurants" element={<Restaurants />} />
-            <Route path="/restaurant/:id" element={<RestaurantDetail />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/restaurants" element={<Restaurants />} />
+              
+              <Route path="/profile" element={<Profile />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+             </Route>
             <Route path="/profile" element={<Profile />} />
-            
+            <Route path="/restaurant/:id" element={<RestaurantDetail />} />
             {/* Admin Routes */}
             <Route element={<AdminProtectedRoute />}>
               <Route path="/admin-dashboard" element={<AdminDashboard />} />
@@ -55,7 +62,6 @@ const App = () => (
             <Route path="/userbookingstatus" element={<UserBookingStatus />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-          
         </TooltipProvider>
       </BrowserRouter>
     </QueryClientProvider>

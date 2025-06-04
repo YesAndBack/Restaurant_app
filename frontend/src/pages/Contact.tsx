@@ -100,8 +100,8 @@ const Contact = () => {
                       <div>
                         <h3 className="font-medium mb-1">Visit Our Office</h3>
                         <p className="text-foreground/70">
-                          1234 Elegant Avenue, Suite 500<br />
-                          New York, NY 10001
+                          Astana city, mangilik el street, 10/1<br />
+                          Almaty city, Al-Farabi street, 20/1
                         </p>
                       </div>
                     </div>
@@ -114,7 +114,7 @@ const Contact = () => {
                           href="mailto:contact@tableelite.com" 
                           className="text-foreground/70 hover:text-foreground transition-colors"
                         >
-                          contact@tableelite.com
+                          esenbekabyur@gmail.com
                         </a>
                       </div>
                     </div>
@@ -127,7 +127,7 @@ const Contact = () => {
                           href="tel:+12123456789" 
                           className="text-foreground/70 hover:text-foreground transition-colors"
                         >
-                          +1 (212) 345-6789
+                          87478014087
                         </a>
                       </div>
                     </div>
@@ -280,7 +280,7 @@ const Contact = () => {
                   answer: "Once you submit a booking request through our platform, the venue will review your requirements and respond with availability and pricing. You can then confirm the booking directly with the venue."
                 },
                 {
-                  question: "Is there a fee to use TableElite?",
+                  question: "Is there a fee to use Toila.kz?",
                   answer: "No, our platform is free to use for event planners. We work with venues on a partnership basis, so you never pay extra to book through us."
                 },
                 {

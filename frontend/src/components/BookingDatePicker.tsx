@@ -1,58 +1,34 @@
-
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { BookingDay } from "@/types/booking";
 
 interface BookingDatePickerProps {
   date: Date | undefined;
   onSelect: (date: Date | undefined) => void;
-  bookingInfo: BookingDay[];
-  minGuests: number;
+  bookings: { id: number, booking_date: string }[];
 }
 
 const BookingDatePicker = ({
   date,
   onSelect,
-  bookingInfo,
-  minGuests
+  bookings
 }: BookingDatePickerProps) => {
-  // Create a map of dates to their booking status for quick access
-  const dateStatusMap = new Map<string, { isFullyBooked: boolean; availableCapacity: number }>();
+  const [bookedDates, setBookedDates] = useState<Date[]>([]);
   
-  bookingInfo.forEach((day) => {
-    dateStatusMap.set(day.date, {
-      isFullyBooked: day.isFullyBooked,
-      availableCapacity: day.availableCapacity
-    });
-  });
+  useEffect(() => {
+    if (bookings && bookings.length > 0) {
+      const booked = bookings.map(booking => new Date(booking.booking_date));
+      setBookedDates(booked);
+    }
+  }, [bookings]);
   
-  // Custom modification to the day component that preserves clickability
-  const renderDay = (day: Date) => {
-    const dateStr = format(day, "yyyy-MM-dd");
-    const status = dateStatusMap.get(dateStr);
-    
-    // Skip rendering custom elements if we don't have booking info
-    if (!status) return <div className="relative">{day.getDate()}</div>;
-    
-    // const isAvailable = !status.isFullyBooked && status.availableCapacity >= minGuests;
-    const isAvailable = status.availableCapacity >= minGuests;
-    
-    return (
-      <div className="relative">
-        <div className={cn(
-          "absolute inset-0 rounded-full",
-          status.isFullyBooked ? "bg-red-200" : 
-            (status.availableCapacity < minGuests ? "bg-orange-200" : "bg-green-200"),
-          "opacity-60 pointer-events-none" // Make this non-interactive
-        )} />
-        <div className="relative z-2">{day.getDate()}</div>
-      </div>
-    );
+  // Function to check if a date is booked
+  const isDateBooked = (day: Date) => {
+    return bookedDates.some(bookedDate => isSameDay(bookedDate, day));
   };
 
   return (
@@ -75,26 +51,19 @@ const BookingDatePicker = ({
           selected={date}
           onSelect={onSelect}
           initialFocus
-          components={{
-            // Day: ({ date: dayDate, ...props }) => (
-            //   <div {...props}>
-            //     {renderDay(dayDate)}
-            //   </div>
-            // ),
+          disabled={isDateBooked}
+          modifiersStyles={{
+            disabled: { backgroundColor: "#fee2e2", color: "#991b1b" }
           }}
-          className={cn("p-3 pointer-events-auto")}
+          className="p-3"
         />
         <div className="border-t p-3 flex gap-3 flex-wrap">
           <div className="flex items-center gap-1">
-            <div className="h-3 w-3 rounded-full bg-green-200"></div>
+            <div className="h-3 w-3 rounded-full bg-green-100"></div>
             <span className="text-xs">Available</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="h-3 w-3 rounded-full bg-orange-200"></div>
-            <span className="text-xs">Limited capacity</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="h-3 w-3 rounded-full bg-red-200"></div>
+            <div className="h-3 w-3 rounded-full bg-red-100"></div>
             <span className="text-xs">Fully booked</span>
           </div>
         </div>

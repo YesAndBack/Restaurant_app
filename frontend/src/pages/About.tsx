@@ -17,7 +17,7 @@ const About = () => {
           
           <div className="container px-4 mx-auto relative z-10">
             <div className="max-w-3xl mx-auto text-center">
-              <h1 className="mb-6">About TableElite</h1>
+              <h1 className="mb-6">About Toila.kz</h1>
               <p className="text-lg md:text-xl text-foreground/80 mb-0 max-w-2xl mx-auto">
                 Connecting exceptional venues with extraordinary events
               </p>
@@ -42,15 +42,16 @@ const About = () => {
               <div>
                 <h2 className="text-3xl font-bold mb-6">Our Story</h2>
                 <p className="text-foreground/80 mb-4 text-lg">
-                  TableElite was founded in 2018 with a simple mission: make it easier for event planners to find and book the perfect restaurant venues for large events.
+                  Our restaurant booking platform was launched with a clear goal: simplify and modernize the way people reserve restaurants for major events like weddings, corporate gatherings, and private celebrations.
                 </p>
                 <p className="text-foreground/80 mb-6 text-lg">
-                  We recognized that planning significant events like corporate gatherings, weddings, and galas often involved hours of research, multiple phone calls, and frustrating back-and-forth communications. Our platform streamlines this process, connecting event planners with premium venues that can accommodate their specific needs.
+                  We realized that organizing large events often meant dealing with outdated systems, long phone calls, and uncertainty about availability. Our solution brings everything into one place — users can easily browse, filter, and book top venues that match their requirements, saving valuable time and effort.
                 </p>
                 <p className="text-foreground/80 text-lg">
-                  Today, TableElite has helped thousands of clients create memorable events at hundreds of curated venues across major cities. Our dedication to quality, service, and satisfaction remains at the heart of everything we do.
+                  Today, our platform connects clients with trusted restaurants in key cities, ensuring smooth planning, verified availability, and a hassle-free booking experience. We’re committed to making every event special through smart technology and seamless service.
                 </p>
-              </div>
+            </div>
+
             </div>
           </div>
         </section>
@@ -101,29 +102,30 @@ const About = () => {
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="mb-4">Meet Our Team</h2>
               <p className="text-foreground/70 text-lg">
-                The passionate people behind TableElite
+                The passionate people behind Toila.kz
               </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
                 {
-                  name: "Alex Morgan",
+                  name: "Yessenbek Abyur",
                   position: "Founder & CEO",
-                  image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1974&auto=format&fit=crop"
+                  image: "public/images/image_yessen.png"
                 },
                 {
-                  name: "Samantha Chen",
-                  position: "Head of Venue Relations",
-                  image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1976&auto=format&fit=crop"
+                  name: "Aliar Azimsham",
+                  position: "Senior Cybersecurity Engineer",
+                  image: "public/images/image_ali.png"
+                },
+                
+                {
+                  name: "Aigerim Aitpaeva",
+                  position: "Cheif Product Officer",
+                  image: "public/images/image_gera.png"
                 },
                 {
-                  name: "David Williams",
-                  position: "Chief Experience Officer",
-                  image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2070&auto=format&fit=crop"
-                },
-                {
-                  name: "Priya Patel",
+                  name: "Diana Nurmukhametova",
                   position: "Event Success Manager",
                   image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=1922&auto=format&fit=crop"
                 }
@@ -150,7 +152,7 @@ const About = () => {
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="mb-6">Join Our Network</h2>
               <p className="text-foreground/80 text-lg mb-8 max-w-xl mx-auto">
-                Are you a restaurant or venue owner? Partner with TableElite to reach event planners looking for exceptional spaces.
+                Are you a restaurant or venue owner? Partner with Toila.kz to reach event planners looking for exceptional spaces.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Button asChild size="lg">

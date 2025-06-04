@@ -1,20 +1,20 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
-import { api } from '@/services/api';
 
 interface ImageUploaderProps {
-  restaurantId: number;
-  onImagesUploaded?: (images: any[]) => void;
+  restaurantId?: number; // Делаем опциональным
+  onImagesUploaded?: (images: string[]) => void; // Изменяем тип на строки (URLs)
+  mode?: 'permanent' | 'temporary'; // Добавляем режим работы
 }
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({ 
   restaurantId,
-  onImagesUploaded 
+  onImagesUploaded,
+  mode = 'permanent'
 }) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -62,7 +62,35 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         throw new Error("Authentication required");
       }
 
-      const result = await api.uploadRestaurantImages(restaurantId, selectedFiles);
+      const formData = new FormData();
+      selectedFiles.forEach(file => {
+        formData.append('files', file);
+      });
+
+      let endpoint = '';
+      if (mode === 'temporary') {
+        endpoint = 'http://localhost:8001/rest/restaurants/upload-image-temp/';
+      } else {
+        if (!restaurantId) {
+          throw new Error("Restaurant ID is required for permanent upload");
+        }
+        endpoint = `http://localhost:8001/rest/restaurants/${restaurantId}/upload-image/`;
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Upload failed');
+      }
+
+      const result = await response.json();
       
       if (result && result.length > 0) {
         toast({
@@ -76,7 +104,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         
         // Notify parent component
         if (onImagesUploaded) {
-          onImagesUploaded(result);
+          // Для временной загрузки возвращаем массив URL строк
+          // Для постоянной загрузки возвращаем массив объектов с URL
+          const imageUrls = mode === 'temporary' 
+            ? result 
+            : result.map((img: any) => img.url);
+          onImagesUploaded(imageUrls);
         }
       } else {
         throw new Error("No images were uploaded");

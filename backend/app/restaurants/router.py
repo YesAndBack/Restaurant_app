@@ -96,6 +96,23 @@ STATIC_RESTAURANTS = [
 ]
 STATIC_RESTAURANT_IDS = {r["id"] for r in STATIC_RESTAURANTS}
 
+@router.post("/restaurants/upload-image-temp/", response_model=List[str])
+async def upload_temp_images(
+    files: List[UploadFile] = File(...),
+    current_user: Users = Depends(get_current_user)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    # Optional: check for admin if needed
+    uploaded_urls = []
+    for file in files:
+        image_url = await upload_image_to_s3(file)
+        uploaded_urls.append(image_url)
+    
+    return uploaded_urls
+
+
 @router.post("/restaurants/{restaurant_id}/upload-image/", response_model=List[RestaurantImageSchema])
 async def upload_image(
     restaurant_id: int,
@@ -177,70 +194,70 @@ async def upload_image(
 #                 "error_details": str(e)
 #             }
 #         )
-@router.post("/restaurants/", response_model=RestaurantResponse)
-async def create_restaurant(
-    name: str = Form(...),
-    description: str = Form(...),
-    location: str = Form(...),
-    address: str = Form(...),
-    category: str = Form(...),
-    capacity: int = Form(...),
-    rating: float = Form(...),
-    price_range: str = Form(...),
-    features: str = Form(default=""),
-    cuisines: str = Form(default=""),
-    contact_phone: str = Form(...),
-    contact_email: str = Form(...),
-    image_urls: str = Form(default=""),
-    payment_intent_id: str = Form(...),  # Новый обязательный параметр
-    current_user: Users = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Authentication required")
+# @router.post("/restaurants/", response_model=RestaurantResponse)
+# async def create_restaurant(
+#     name: str = Form(...),
+#     description: str = Form(...),
+#     location: str = Form(...),
+#     address: str = Form(...),
+#     category: str = Form(...),
+#     capacity: int = Form(...),
+#     rating: float = Form(...),
+#     price_range: str = Form(...),
+#     features: str = Form(default=""),
+#     cuisines: str = Form(default=""),
+#     contact_phone: str = Form(...),
+#     contact_email: str = Form(...),
+#     image_urls: str = Form(default=""),
+#     payment_intent_id: str = Form(...),  # Новый обязательный параметр
+#     current_user: Users = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     if not current_user:
+#         raise HTTPException(status_code=401, detail="Authentication required")
     
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can create restaurants")
+#     if current_user.role != "admin":
+#         raise HTTPException(status_code=403, detail="Only admins can create restaurants")
 
-    # Проверка платежа
-    try:
-        intent = stripe.PaymentIntent.retrieve(payment_intent_id)
-        if intent["status"] != "succeeded":
-            raise HTTPException(status_code=402, detail="Payment required or not completed")
-        if intent["amount"] != settings.ADMIN_FEE_USD or intent["currency"] != "usd":
-            raise HTTPException(status_code=400, detail="Invalid payment amount or currency")
-    except stripe.error.StripeError as e:
-        raise HTTPException(status_code=400, detail=f"Payment verification error: {str(e)}")
+#     # Проверка платежа
+#     try:
+#         intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+#         if intent["status"] != "succeeded":
+#             raise HTTPException(status_code=402, detail="Payment required or not completed")
+#         if intent["amount"] != settings.ADMIN_FEE_USD or intent["currency"] != "usd":
+#             raise HTTPException(status_code=400, detail="Invalid payment amount or currency")
+#     except stripe.error.StripeError as e:
+#         raise HTTPException(status_code=400, detail=f"Payment verification error: {str(e)}")
 
-    # Преобразование данных
-    features_list = features.split(",") if features else []
-    cuisines_list = cuisines.split(",") if cuisines else []
-    image_urls_list = image_urls.split(",") if image_urls else []
+#     # Преобразование данных
+#     features_list = features.split(",") if features else []
+#     cuisines_list = cuisines.split(",") if cuisines else []
+#     image_urls_list = image_urls.split(",") if image_urls else []
 
-    restaurant_data = RestaurantCreate(
-        name=name,
-        description=description,
-        location=location,
-        address=address,
-        category=category,
-        capacity=capacity,
-        rating=rating,
-        price_range=price_range,
-        features=features_list,
-        cuisines=cuisines_list,
-        contact_phone=contact_phone,
-        contact_email=contact_email,
-        image_urls=image_urls_list
-    )
+#     restaurant_data = RestaurantCreate(
+#         name=name,
+#         description=description,
+#         location=location,
+#         address=address,
+#         category=category,
+#         capacity=capacity,
+#         rating=rating,
+#         price_range=price_range,
+#         features=features_list,
+#         cuisines=cuisines_list,
+#         contact_phone=contact_phone,
+#         contact_email=contact_email,
+#         image_urls=image_urls_list
+#     )
 
-    created_restaurant = await RestaurantDAO.create_restaurant(
-        db,
-        restaurant_data,
-        current_user.id,
-        image_urls_list if image_urls_list else None
-    )
+#     created_restaurant = await RestaurantDAO.create_restaurant(
+#         db,
+#         restaurant_data,
+#         current_user.id,
+#         image_urls_list if image_urls_list else None
+#     )
     
-    return created_restaurant
+#     return created_restaurant
 
 # @router.post("/restaurants/", response_model=RestaurantResponse)
 # async def create_restaurant(
@@ -325,12 +342,12 @@ async def create_restaurant_checkout_session(
     return {"checkout_url": session.url, "session_id": session.id}
 
 
-
+# дополнить
 @router.post("/restaurants/create-after-payment/")
-async def create_restaurant_after_payment(restaurant: RestaurantCreateIn, 
+async def create_restaurant_after_payment(
+    restaurant: RestaurantCreateIn, 
     db: AsyncSession = Depends(get_db)
-    ):
-    # Verify the payment was successful
+):
     try:
         session = stripe.checkout.Session.retrieve(restaurant.session_id)
         if session.payment_status != "paid":
@@ -338,36 +355,39 @@ async def create_restaurant_after_payment(restaurant: RestaurantCreateIn,
     except stripe.error.StripeError as e:
         raise HTTPException(status_code=400, detail=f"Payment verification error: {str(e)}")
     
-    # Create the restaurant in the database
     try:
-        # Prepare restaurant data
-        db_restaurant = {
-            "name": restaurant.name,
-            "description": restaurant.description,
-            "location": restaurant.location,
-            "category": restaurant.category,
-            "address": "null",
-            "rating": 0,
-            "cuisines": "null",
-            "features": "null",
-            "capacity": restaurant.capacity,
-            "contact_phone": restaurant.contact_phone,
-            "contact_email": restaurant.contact_email,
-            "price_range": str(restaurant.average_price),
-            # "image_urls": restaurant.image_urls,
-            # "opening_hours": restaurant.opening_hours,
-            "owner_id": restaurant.user_id,
-            # "payment_confirmed": True,
-            # "payment_session_id": restaurant.session_id
+        image_urls_list = []
+        if restaurant.image_urls:
+            image_urls_list = [url.strip() for url in restaurant.image_urls.split(",") if url.strip()]
+        
+        restaurant_data = RestaurantCreate(
+            name=restaurant.name,
+            description=restaurant.description,
+            location=restaurant.location,
+            address="",
+            category=restaurant.category,
+            capacity=restaurant.capacity,
+            rating=0.0,
+            price_range=str(restaurant.average_price),
+            features=restaurant.features,
+            cuisines=restaurant.cuisines,
+            contact_phone=restaurant.contact_phone,
+            contact_email=restaurant.contact_email,
+            image_urls=image_urls_list
+        )
+        
+        created_restaurant = await RestaurantDAO.create_restaurant(
+            db,
+            restaurant_data,
+            restaurant.user_id,
+            image_urls_list if image_urls_list else None
+        )
+        
+        return {
+            "status": "success", 
+            "message": "Restaurant created successfully",
+            "restaurant": created_restaurant
         }
-        
-        # Create restaurant in database (example with SQLAlchemy ORM)
-        new_restaurant = Restaurant(**db_restaurant)
-        db.add(new_restaurant)
-        await db.commit()
-        await db.refresh(new_restaurant)
-        
-        return {"status": "success", "message": "Restaurant created successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create restaurant: {str(e)}")
     

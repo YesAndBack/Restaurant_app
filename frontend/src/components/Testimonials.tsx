@@ -7,23 +7,23 @@ const testimonials = [
   {
     id: 1,
     quote: "The venue booking process was seamless. We hosted our company anniversary at Elevation Grand Hall, and everything was perfect.",
-    author: "Emily Johnson",
+    author: "Zhana Malikova",
     position: "Event Director, Techwave",
     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1887&auto=format&fit=crop"
   },
   {
     id: 2,
-    quote: "TableElite helped us find the perfect restaurant for our charity gala. The service was exceptional from start to finish.",
-    author: "Michael Chen",
+    quote: "Toila.kz helped us find the perfect restaurant for our charity gala. The service was exceptional from start to finish.",
+    author: "Dias Nurmukhametov",
     position: "Foundation President",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1887&auto=format&fit=crop"
+    image: "public/images/image_dias.png"
   },
   {
     id: 3,
-    quote: "Planning our annual conference dinner was stress-free thanks to TableElite. Highly recommended for corporate events.",
-    author: "Sarah Williams",
+    quote: "Planning our annual conference dinner was stress-free thanks to Toila.kz. Highly recommended for corporate events.",
+    author: "Amina Sarsenova",
     position: "Operations Manager, GlobalTech",
-    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=1961&auto=format&fit=crop"
+    image: "public/images/image_amina.png"
   }
 ];
 

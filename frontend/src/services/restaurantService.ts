@@ -40,6 +40,9 @@ export interface CreateRestaurantData {
   contact_phone: string;
   contact_email: string;
   average_price: number;
+  features: string[];
+  cuisines: string[];
+
 }
 
 export interface UpdateRestaurantData {
@@ -52,6 +55,7 @@ export interface UpdateRestaurantData {
   contact_phone?: string;
   contact_email?: string;
   average_price?: number;
+  additional_information?: string;
 }
 
 

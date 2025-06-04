@@ -61,7 +61,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             {averagePrice && (
               <div className="flex items-center text-sm text-foreground/70">
                 <DollarSign className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
-                <span className="font-medium">${averagePrice}/person</span>
+                <span className="font-medium">{averagePrice} /person</span>
               </div>
             )}
           </div>

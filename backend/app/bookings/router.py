@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.bookings.schemas import BookingCreate, BookingResponse
 from app.bookings.dao import BookingDAO
@@ -6,29 +6,11 @@ from app.database import get_db
 from app.users.auth import get_current_user
 from app.users.models import Users
 from datetime import date
-from typing import List
+from typing import Dict, List, Optional
 import logging
 
 from app.restaurants.models import Restaurant
 from app.bookings.models import Bookings
-
-logger = logging.getLogger(__name__)
-
-router = APIRouter(
-    prefix="/bookings",
-    tags=["Bookings"]
-)
-
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.bookings.schemas import BookingCreate, BookingResponse  # Removed BookingUpdate
-from app.bookings.dao import BookingDAO
-from app.database import get_db
-from app.users.auth import get_current_user
-from app.users.models import Users
-from datetime import date
-from typing import List
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -175,7 +157,6 @@ async def get_bookings_by_restaurant(
         logger.error(f"Error retrieving bookings: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error retrieving bookings: {str(e)}")
 
-
 @router.get("/reserved/{booking_date}", response_model=List[int])
 async def get_reserved_restaurants(
     booking_date: date,
@@ -188,4 +169,37 @@ async def get_reserved_restaurants(
     except Exception as e:
         logger.error(f"Error retrieving reserved restaurants: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error retrieving reserved restaurants: {str(e)}")
-    
+
+@router.get("/booked-dates/{restaurant_id}", response_model=List[date])
+async def get_booked_dates(
+    restaurant_id: int,
+    start_date: Optional[date] = Query(None, description="Start date for filtering"),
+    end_date: Optional[date] = Query(None, description="End date for filtering"),
+    current_user: Users = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get all booked dates (pending and confirmed) for a specific restaurant"""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    try:
+        booked_dates = await BookingDAO.get_booked_dates(db, restaurant_id, start_date, end_date)
+        return booked_dates
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Error retrieving booked dates: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving booked dates: {str(e)}")
+# @router.get("/reserved/{booking_date}", response_model=List[int])
+# async def get_reserved_restaurants(
+#     booking_date: date,
+#     db: AsyncSession = Depends(get_db)
+# ):
+#     """Get restaurants already reserved (confirmed) for a specific day"""
+#     try:
+#         reserved_ids = await BookingDAO.get_reserved_restaurants(db, booking_date)
+#         return reserved_ids
+#     except Exception as e:
+#         logger.error(f"Error retrieving reserved restaurants: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Error retrieving reserved restaurants: {str(e)}")
+
